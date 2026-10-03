@@ -4,6 +4,27 @@ A recipe app for Android. Paste a link (or share a page from Chrome), and Simmer
 
 Everything is stored on the phone. No account, no server.
 
+**And it feeds people.** Simmer is free for everyone. Ad revenue and tips go to a named food bank (see `Config.kt`). Watch a short ad to fund a meal, round up after a grocery run, or tip directly. Your "table" fills with dishes as the meals you've funded add up.
+
+## Features
+
+- **Import from a link** (or share from Chrome): title, photo, ingredients, steps, times.
+- **Cook mode**: one step at a time, big text, screen stays on, tap-to-start timers pulled from the step text.
+- **Scale servings** with +/- and every quantity updates.
+- **Pantry**: type what you have and see which saved recipes you can make now, and what's missing.
+- **Grocery list** grouped by recipe, with a progress bar and "plan from recipes".
+- **Give**: watch-to-feed (rewarded ads), tip jar, streaks, chef levels, community pot, and a plain-language "where the money goes" section.
+- Share any recipe as clean text; share your impact.
+
+## Going live checklist
+
+1. **Google Play developer account** ($25 one-time) at play.google.com/console.
+2. **AdMob** account at admob.google.com. Create an app and a Rewarded ad unit, then replace the two test ids in `Config.kt` and `AndroidManifest.xml`.
+3. **Charity**: confirm the name, donation link and meals-per-dollar figure in `Config.kt` with the food bank, and get their OK to be named.
+4. **Privacy policy**: host `docs/privacy.md` somewhere public (GitHub Pages works) and paste the link into the Play listing.
+5. **Signing key**: `app/simmer-release.jks` is the key every build uses. Back it up somewhere safe; losing it means you can never update the app on the store.
+6. **Play Billing** (optional): replace the donate-link tips with in-app purchases once the listing exists.
+
 ## Getting the app onto your phone
 
 You don't need Android Studio. GitHub will build the APK for you.

@@ -27,9 +27,14 @@ import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
@@ -41,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,20 +57,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import app.simmer.Config
 import app.simmer.data.Recipe
+import app.simmer.util.Kitchen
 
 @Composable
 fun RecipeDetailScreen(
     recipe: Recipe,
     onBack: () -> Unit,
     onEdit: () -> Unit,
-    onAddToGrocery: () -> Unit,
+    onAddToGrocery: (List<String>) -> Unit,
     onToggleFavorite: () -> Unit,
     onDelete: () -> Unit,
+    onCook: (List<String>) -> Unit,
 ) {
     val context = LocalContext.current
     var checked by remember(recipe.id) { mutableStateOf(setOf<Int>()) }
     var confirmDelete by remember { mutableStateOf(false) }
+
+    val baseServings = remember(recipe.servings) { Kitchen.servingsNumber(recipe.servings) }
+    var servings by remember(recipe.id) { mutableIntStateOf(baseServings ?: 0) }
+    val factor = if (baseServings != null && servings > 0) servings.toDouble() / baseServings else 1.0
+    val shownIngredients = remember(recipe.ingredients, factor) { recipe.ingredients.map { Kitchen.scaleIngredient(it, factor) } }
+
+    fun shareRecipe() {
+        val text = buildString {
+            appendLine(recipe.title)
+            if (recipe.servings.isNotBlank()) appendLine("Serves ${recipe.servings}")
+            appendLine()
+            appendLine("INGREDIENTS")
+            shownIngredients.forEach { appendLine("• $it") }
+            appendLine()
+            appendLine("METHOD")
+            recipe.steps.forEachIndexed { i, st -> appendLine("${i + 1}. $st") }
+            if (recipe.source.isNotBlank()) { appendLine(); appendLine("Source: ${recipe.source}") }
+            appendLine()
+            appendLine("Saved with Simmer, the free recipe app that feeds people: ${Config.APP_URL}")
+        }
+        val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_SUBJECT, recipe.title).putExtra(Intent.EXTRA_TEXT, text)
+        runCatching { context.startActivity(Intent.createChooser(send, "Share recipe")) }
+    }
 
     if (confirmDelete) {
         AlertDialog(
@@ -95,6 +127,8 @@ fun RecipeDetailScreen(
                             tint = if (recipe.favorite) MaterialTheme.colorScheme.secondary else Color.White,
                         )
                         Spacer(Modifier.width(6.dp))
+                        GlassIconButton(Icons.Default.Share, "Share", ::shareRecipe)
+                        Spacer(Modifier.width(6.dp))
                         GlassIconButton(Icons.Default.Edit, "Edit", onEdit)
                     }
                 }
@@ -114,14 +148,30 @@ fun RecipeDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (recipe.time.isNotBlank()) StatTile("Time", recipe.time, Modifier.weight(1f))
-                    if (recipe.servings.isNotBlank()) StatTile("Serves", recipe.servings, Modifier.weight(1f))
+                    if (baseServings != null) {
+                        ServingsTile(servings, onChange = { servings = it.coerceIn(1, 99) }, modifier = Modifier.weight(1.4f))
+                    } else if (recipe.servings.isNotBlank()) {
+                        StatTile("Serves", recipe.servings, Modifier.weight(1f))
+                    }
                     StatTile("Ingredients", "${recipe.ingredients.size}", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(14.dp))
-                Button(onClick = onAddToGrocery, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
-                    Icon(Icons.Default.AddShoppingCart, contentDescription = null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Add ingredients to grocery list")
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(
+                        onClick = { onCook(shownIngredients) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                    ) {
+                        Icon(Icons.Default.LocalFireDepartment, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Cook")
+                    }
+                    Button(onClick = { onAddToGrocery(shownIngredients) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) {
+                        Icon(Icons.Default.AddShoppingCart, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Groceries")
+                    }
                 }
                 if (recipe.source.isNotBlank()) {
                     TextButton(
@@ -140,7 +190,7 @@ fun RecipeDetailScreen(
         if (recipe.ingredients.isEmpty()) {
             item { Text("None listed", Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
-        itemsIndexed(recipe.ingredients) { i, ing ->
+        itemsIndexed(shownIngredients) { i, ing ->
             val done = i in checked
             val shape = when {
                 recipe.ingredients.size == 1 -> RoundedCornerShape(14.dp)
@@ -211,6 +261,24 @@ fun RecipeDetailScreen(
                     Text("Delete recipe", color = MaterialTheme.colorScheme.error)
                 }
             }
+        }
+    }
+}
+
+/** Stat tile with +/- to scale the recipe. */
+@Composable
+private fun ServingsTile(value: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+    ) {
+        Text("SERVES", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { onChange(value - 1) }, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Remove, contentDescription = "Fewer", Modifier.size(16.dp)) }
+            Text("$value", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 6.dp))
+            IconButton(onClick = { onChange(value + 1) }, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, contentDescription = "More", Modifier.size(16.dp)) }
         }
     }
 }

@@ -13,8 +13,8 @@ android {
         applicationId = "app.simmer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "2.0"
     }
 
     signingConfigs {
@@ -69,6 +69,7 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.google.android.gms:play-services-ads:23.4.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jsoup:jsoup:1.18.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")

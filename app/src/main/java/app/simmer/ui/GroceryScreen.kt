@@ -56,10 +56,22 @@ fun GroceryScreen(
     onClearDone: () -> Unit,
     onClearAll: () -> Unit,
     onPlan: (Set<Long>) -> Unit,
+    onRoundUp: () -> Unit,
 ) {
     var newItem by remember { mutableStateOf("") }
     var planning by remember { mutableStateOf(false) }
     var confirmClear by remember { mutableStateOf(false) }
+    var roundUp by remember { mutableStateOf(false) }
+
+    if (roundUp) {
+        AlertDialog(
+            onDismissRequest = { roundUp = false },
+            title = { Text("Shopping done! 🛒") },
+            text = { Text("Round up your trip and fund ${app.simmer.Config.MEALS_PER_DOLLAR} meals for \$1? It opens ${app.simmer.Config.CHARITY_NAME}'s donation page.") },
+            confirmButton = { TextButton(onClick = { roundUp = false; onRoundUp() }) { Text("Round up \$1") } },
+            dismissButton = { TextButton(onClick = { roundUp = false }) { Text("Not today") } },
+        )
+    }
 
     if (planning) {
         PlanDialog(recipes, onDismiss = { planning = false }, onConfirm = { onPlan(it); planning = false })
@@ -123,7 +135,7 @@ fun GroceryScreen(
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(onClick = { planning = true }, label = { Text("Plan from recipes") })
-                AssistChip(onClick = onClearDone, enabled = done > 0, label = { Text("Clear checked") })
+                AssistChip(onClick = { val all = done == items.size; onClearDone(); if (all) roundUp = true }, enabled = done > 0, label = { Text("Clear checked") })
                 AssistChip(onClick = { confirmClear = true }, enabled = items.isNotEmpty(), label = { Text("Clear all") })
             }
         }
