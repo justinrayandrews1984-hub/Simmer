@@ -70,6 +70,8 @@ fun RecipeDetailScreen(
     onToggleFavorite: () -> Unit,
     onDelete: () -> Unit,
     onCook: (List<String>) -> Unit,
+    chefSignature: String = "",
+    onShared: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var checked by remember(recipe.id) { mutableStateOf(setOf<Int>()) }
@@ -92,8 +94,10 @@ fun RecipeDetailScreen(
             recipe.steps.forEachIndexed { i, st -> appendLine("${i + 1}. $st") }
             if (recipe.source.isNotBlank()) { appendLine(); appendLine("Source: ${recipe.source}") }
             appendLine()
+            if (chefSignature.isNotBlank()) appendLine("— $chefSignature")
             appendLine("Saved with Simmer, the free recipe app that feeds people: ${Config.APP_URL}")
         }
+        onShared()
         val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_SUBJECT, recipe.title).putExtra(Intent.EXTRA_TEXT, text)
         runCatching { context.startActivity(Intent.createChooser(send, "Share recipe")) }
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
@@ -57,6 +59,8 @@ fun RecipeListScreen(
     onOpen: (Recipe) -> Unit,
     onToggleFavorite: (Recipe) -> Unit,
     onAdd: () -> Unit,
+    compact: Boolean = false,
+    onBack: (() -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf(SortMode.NEWEST) }
@@ -94,7 +98,10 @@ fun RecipeListScreen(
     Column(Modifier.fillMaxSize()) {
         // Header
         Column(Modifier.padding(horizontal = 20.dp)) {
-            Text("Simmer", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onBackground)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onBack != null) IconButton(onClick = onBack, Modifier.offset(x = (-12).dp)) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                Text("All recipes", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onBackground)
+            }
             Text(
                 when {
                     recipes.isEmpty() -> "Your recipes, in your pocket."
@@ -156,13 +163,13 @@ fun RecipeListScreen(
             )
             shown.isEmpty() -> EmptyState(title = "Nothing matches", body = "Try a different search or category.")
             else -> LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(if (compact) 3 else 2),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(shown, key = { it.id }) { r ->
-                    RecipeTile(r, onClick = { onOpen(r) }, onToggleFavorite = { onToggleFavorite(r) })
+                    RecipeTile(r, onClick = { onOpen(r) }, onToggleFavorite = { onToggleFavorite(r) }, compact = compact)
                 }
             }
         }
@@ -186,11 +193,11 @@ private fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) 
 }
 
 @Composable
-private fun RecipeTile(r: Recipe, onClick: () -> Unit, onToggleFavorite: () -> Unit) {
+private fun RecipeTile(r: Recipe, onClick: () -> Unit, onToggleFavorite: () -> Unit, compact: Boolean = false) {
     Box(
         Modifier
             .fillMaxWidth()
-            .aspectRatio(0.82f)
+            .aspectRatio(if (compact) 0.75f else 0.82f)
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick),
@@ -198,7 +205,7 @@ private fun RecipeTile(r: Recipe, onClick: () -> Unit, onToggleFavorite: () -> U
         RecipeImage(r.imageUrl, Modifier.fillMaxSize())
         PhotoScrim(Modifier.fillMaxSize())
 
-        if (r.category.isNotBlank()) {
+        if (r.category.isNotBlank() && !compact) {
             Pill(
                 r.category,
                 container = Color.White.copy(alpha = 0.9f),

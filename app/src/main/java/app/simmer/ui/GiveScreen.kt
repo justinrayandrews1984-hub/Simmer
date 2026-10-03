@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -54,6 +55,8 @@ fun GiveScreen(
     onAdWatched: () -> Unit,
     onTip: (Int) -> Unit,
     onToast: (String) -> Unit,
+    onCustomize: () -> Unit,
+    onSharedApp: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -84,6 +87,12 @@ fun GiveScreen(
         // Your table
         item {
             TableCard(state)
+            Spacer(Modifier.height(10.dp))
+            OutlinedButton(onClick = onCustomize, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+                Icon(Icons.Default.Palette, contentDescription = null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Your kitchen style  ·  themes, icons, extras")
+            }
             Spacer(Modifier.height(14.dp))
         }
 
@@ -198,21 +207,22 @@ fun GiveScreen(
             Spacer(Modifier.height(14.dp))
         }
 
-        // Share your impact
+        // Share
         item {
-            OutlinedButton(
+            Button(
                 onClick = {
                     val text = "I've funded ${state.mealsFunded} meal${if (state.mealsFunded == 1) "" else "s"} for ${Config.CHARITY_NAME} just by cooking at home with Simmer. " +
                         "Free recipe app, every recipe helps feed someone: ${Config.APP_URL}"
                     val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
-                    runCatching { context.startActivity(Intent.createChooser(send, "Share your impact")) }
+                    runCatching { context.startActivity(Intent.createChooser(send, "Share Simmer")) }
+                    onSharedApp()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
             ) {
                 Icon(Icons.Default.Share, contentDescription = null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Share your impact")
+                Text(if (state.sharedAppToday) "Share Simmer with a friend" else "Share Simmer with a friend  ·  +10 ✦")
             }
         }
     }
@@ -238,6 +248,7 @@ fun TableCard(state: GiveState) {
             Column(horizontalAlignment = Alignment.End) {
                 Pill(level.title, container = Color.White.copy(alpha = 0.18f), content = Color.White)
                 Spacer(Modifier.height(6.dp))
+                Text("${state.embers} ✦ embers", style = MaterialTheme.typography.labelLarge, color = Color.White)
                 Text(
                     if (state.streakDays > 1) "🔥 ${state.streakDays}-day streak" else "Give today to start a streak",
                     style = MaterialTheme.typography.labelMedium,
@@ -246,11 +257,11 @@ fun TableCard(state: GiveState) {
             }
         }
         Spacer(Modifier.height(16.dp))
-        TableIllustration(state.mealsFunded)
+        TableIllustration(state.embers)
         Spacer(Modifier.height(12.dp))
         if (next != null) {
-            val span = next.minMeals - level.minMeals
-            val into = state.mealsFunded - level.minMeals
+            val span = next.minEmbers - level.minEmbers
+            val into = state.embers - level.minEmbers
             LinearProgressIndicator(
                 progress = { (into.toFloat() / span).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(999.dp)),
@@ -259,7 +270,7 @@ fun TableCard(state: GiveState) {
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "${next.minMeals - state.mealsFunded} more to ${next.title}: ${next.dish.lowercase()} joins your table",
+                "${next.minEmbers - state.embers} ✦ more to ${next.title}: ${next.dish} joins your table",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.9f),
             )
@@ -271,22 +282,23 @@ fun TableCard(state: GiveState) {
 
 /** A row of dishes; each level unlocks one. Locked dishes are faint. */
 @Composable
-private fun TableIllustration(meals: Int) {
-    val dishes = listOf("🍲" to ChefLevel.HOME_COOK, "🍞" to ChefLevel.LINE_COOK, "🍛" to ChefLevel.SOUS_CHEF, "🍗" to ChefLevel.HEAD_CHEF, "🎉" to ChefLevel.COMMUNITY_KITCHEN)
+private fun TableIllustration(embers: Int) {
+    val meals = embers
+    val dishes = listOf("🍲" to ChefLevel.HOME_COOK, "🍞" to ChefLevel.PREP_COOK, "🥗" to ChefLevel.LINE_COOK, "🍛" to ChefLevel.SOUS_CHEF, "🍗" to ChefLevel.CHEF_DE_PARTIE, "🥘" to ChefLevel.HEAD_CHEF, "🍰" to ChefLevel.EXECUTIVE_CHEF, "🎉" to ChefLevel.COMMUNITY_KITCHEN)
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White.copy(alpha = 0.14f))
-            .padding(vertical = 14.dp),
+            .padding(vertical = 12.dp, horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         dishes.forEach { (emoji, lvl) ->
-            val unlocked = meals >= lvl.minMeals
+            val unlocked = meals >= lvl.minEmbers
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(emoji, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(2.dp).alpha(if (unlocked) 1f else 0.3f))
+                Text(emoji, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(1.dp).alpha(if (unlocked) 1f else 0.3f))
                 Text(
-                    if (unlocked) "✓" else "${lvl.minMeals}",
+                    if (unlocked) "✓" else "${lvl.minEmbers}",
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = if (unlocked) 1f else 0.5f),
                     textAlign = TextAlign.Center,

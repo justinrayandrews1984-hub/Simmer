@@ -107,8 +107,28 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- giving ----------
 
-    fun recordAdWatched() = giveStore.recordAdWatched()
-    fun recordTip(cents: Int) = giveStore.recordTip(cents)
-    fun recordCooked() = giveStore.recordCooked()
+    fun recordAdWatched(): Int = giveStore.recordAdWatched()
+    fun recordTip(cents: Int): Int = giveStore.recordTip(cents)
+    fun recordCooked(): Int = giveStore.recordCooked()
+    fun recordSaved(): Int = giveStore.recordSaved()
+    fun recordSharedRecipe(): Int = giveStore.recordSharedRecipe()
+    fun recordSharedApp(): Int = giveStore.recordSharedApp()
     fun claimWelcomeBonus(): Boolean = giveStore.claimWelcomeBonus()
+    fun setTheme(key: String) = giveStore.setTheme(key)
+    fun setToggle(key: String, on: Boolean) = giveStore.setToggle(key, on)
+
+    /** Switches the launcher icon by enabling one activity-alias and disabling the others. */
+    fun setIcon(key: String) {
+        val app = getApplication<Application>()
+        val pm = app.packageManager
+        listOf("herb", "paprika", "midnight", "gold").forEach { k ->
+            val cn = android.content.ComponentName(app, "app.simmer.Icon_$k")
+            pm.setComponentEnabledSetting(
+                cn,
+                if (k == key) android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED else android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                android.content.pm.PackageManager.DONT_KILL_APP,
+            )
+        }
+        giveStore.setIcon(key)
+    }
 }

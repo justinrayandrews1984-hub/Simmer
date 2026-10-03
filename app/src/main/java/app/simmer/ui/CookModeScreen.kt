@@ -60,6 +60,7 @@ fun CookModeScreen(
     scaledIngredients: List<String>,
     onExit: () -> Unit,
     onFinished: () -> Unit,
+    confetti: Boolean = true,
 ) {
     val context = LocalContext.current
     val steps = recipe.steps.ifEmpty { listOf("No steps written for this recipe yet.") }
@@ -94,6 +95,7 @@ fun CookModeScreen(
 
     BackHandler { onExit() }
 
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         // Top bar
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -205,6 +207,10 @@ fun CookModeScreen(
                 }
             }
         }
+    }
+    if (confetti && index == steps.lastIndex && steps.size > 1) {
+        Confetti(Modifier.fillMaxSize(), colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.primaryContainer))
+    }
     }
 }
 

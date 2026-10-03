@@ -13,8 +13,8 @@ android {
         applicationId = "app.simmer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "2.0"
+        versionCode = 4
+        versionName = "2.1"
     }
 
     signingConfigs {
