@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import app.simmer.data.GroceryItem
 import app.simmer.data.Recipe
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GroceryScreen(
     items: List<GroceryItem>,
@@ -133,7 +136,7 @@ fun GroceryScreen(
                 }
             }
             Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(onClick = { planning = true }, label = { Text("Plan from recipes") })
                 AssistChip(onClick = { val all = done == items.size; onClearDone(); if (all) roundUp = true }, enabled = done > 0, label = { Text("Clear checked") })
                 AssistChip(onClick = { confirmClear = true }, enabled = items.isNotEmpty(), label = { Text("Clear all") })

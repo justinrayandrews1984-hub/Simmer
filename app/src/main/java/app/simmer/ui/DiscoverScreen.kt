@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -110,7 +112,7 @@ fun DiscoverScreen(
     if (p != null) {
         val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = { preview = null }, sheetState = sheet) {
-            LazyColumn(Modifier.fillMaxWidth(), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 40.dp)) {
+            LazyColumn(Modifier.fillMaxWidth().fillMaxHeight(0.92f), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 40.dp)) {
                 item {
                     Box(Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(18.dp))) { RecipeImage(p.imageUrl, Modifier.fillMaxSize()) }
                     Spacer(Modifier.height(12.dp))
@@ -125,8 +127,19 @@ fun DiscoverScreen(
                 }
                 items(p.ingredients) { Text("•  $it", Modifier.padding(vertical = 3.dp)) }
                 item { SectionHeading("Method (${p.steps.size} steps)") }
-                items(p.steps.take(3)) { Text(it, Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis) }
-                if (p.steps.size > 3) item { Text("…and ${p.steps.size - 3} more once saved.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                itemsIndexed(p.steps) { i, step ->
+                    Row(Modifier.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("${i + 1}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(24.dp))
+                        Text(step, Modifier.weight(1f))
+                    }
+                }
+                if (p.notes.isNotBlank()) {
+                    item { SectionHeading("Notes"); Text(p.notes, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                }
+                item {
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { onSave(p); preview = null }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) { Text("Save to my recipes") }
+                }
             }
         }
     }
