@@ -13,15 +13,28 @@ android {
         applicationId = "app.simmer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    signingConfigs {
+        // One fixed key, checked into the repo, so every build installs over the last one.
+        // This is a personal-use app; for Play Store publishing you'd keep this key private.
+        create("simmer") {
+            storeFile = file("simmer-release.jks")
+            storePassword = "simmer-release"
+            keyAlias = "simmer"
+            keyPassword = "simmer-release"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Signed with the debug key so the APK built by CI installs straight onto a phone.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("simmer")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("simmer")
         }
     }
     compileOptions {
