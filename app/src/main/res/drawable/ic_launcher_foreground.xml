@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- a pot with a lid -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M30,50 h48 a3,3 0 0 1 3,3 v18 a10,10 0 0 1 -10,10 h-34 a10,10 0 0 1 -10,-10 v-18 a3,3 0 0 1 3,-3 z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M26,44 h56 a2.5,2.5 0 0 1 0,5 h-56 a2.5,2.5 0 0 1 0,-5 z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M50,36 h8 a2,2 0 0 1 2,2 v4 h-12 v-4 a2,2 0 0 1 2,-2 z" />
+    <path android:fillColor="#E3F1E8"
+        android:pathData="M44,26 c-3,4 3,6 0,10 M54,24 c-3,4 3,6 0,10 M64,26 c-3,4 3,6 0,10"
+        android:strokeColor="#E3F1E8" android:strokeWidth="2.5" android:strokeLineCap="round" />
+</vector>
